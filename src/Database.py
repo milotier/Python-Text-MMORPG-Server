@@ -73,7 +73,7 @@ def createAccount(username,
     elif type(usernameOutcome) == str:
         return usernameOutcome
 
-    with open('config.json') as configData:
+    with open('../config.json') as configData:
         config = json.load(configData)
     startingLocation = config['starting location']
 

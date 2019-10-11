@@ -44,7 +44,7 @@ characterLocations = {
     pack('III', 2, 2, 5): []
 }
 
-env = lmdb.open('GameDatabase', map_size=1000000, max_dbs=20)
+env = lmdb.open('../GameDatabase', map_size=1000000, max_dbs=20)
 staticWorldDB = env.open_db(bytes('StaticWorld'.encode()))
 txn = env.begin(write=True, db=staticWorldDB)
 for field in staticWorld:

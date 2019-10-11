@@ -6,6 +6,7 @@ from Database import movePlayer, \
 from queue import Queue
 from threading import Lock
 from json import loads
+from json.decoder import JSONDecodeError
 
 
 # Here a FIFO queue is made
@@ -148,7 +149,9 @@ def performCommands(env,
                 sendFullUpdate = True
                 try:
                     command['command'] = loads(command['command'][0])
-                finally:
+                except JSONDecodeError:
+                    pass
+                else:
                     disconnected = False
                     if 'str' in command['command']:
                         if command['command']['str'] == 'disconnect':
