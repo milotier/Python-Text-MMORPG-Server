@@ -161,7 +161,7 @@ def performCommands(env,
                             disconnected = True
                     else:
                         command['command'] = makeCommand(command['command'])
-                        print('Account', command['ClientHandler'], 'performed a', type(command['command'], '.'))
+                        print('Account', command['ClientHandler'].loggedInAccount, 'performed a', type(command['command']).__name__ + '.')
                         if command['command'] is not None:
                             if issubclass(type(command['command']), Command):
                                 outcome = command['command'].function(*eval(command['command'].args))
