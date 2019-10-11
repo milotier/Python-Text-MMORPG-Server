@@ -152,7 +152,6 @@ def performCommands(env,
                 if abs(serverTimestamp-clientTimestamp) >= 5 and \
                    clientTimestamp != 0.0:
                     sendFullUpdate = True
-                sendFullUpdate = True
                 try:
                     command['command'] = loads(command['command'][0])
                 except JSONDecodeError:
