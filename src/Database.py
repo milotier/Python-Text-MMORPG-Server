@@ -12,6 +12,8 @@ import json
 # TODO: Add some sort of character description
 
 
+# DB: database
+
 # This starts up the lmdb environment and the databases in it
 def startupDatabase():
     env = lmdb.open('GameDatabase', map_size=1000000, max_dbs=20)
@@ -443,21 +445,24 @@ def getPlayerItemArea(clientHandler,
 def getPlayerInventory(clientHandler,
                        txn,
                        itemDB,
-                       inventoryDB):
+                       inventoryDB,
+                       getValues=True):
     cursor = txn.cursor(db=inventoryDB)
     accountID = clientHandler.loggedInAccount
     inventory = cursor.get(pack('I', accountID))
     cursor.close()
     inventory = literal_eval(inventory.decode())
-    itemValueList = []
-    cursor = txn.cursor(db=itemDB)
-    for item in inventory:
-        cursor.set_key(pack('I', item))
-        itemValue = cursor.value()
-        itemValue = literal_eval(itemValue.decode())
-        itemValue['ID'] = item
-        itemValueList.append(itemValue)
-    return itemValueList
+    if getValues:
+        itemValueList = []
+        cursor = txn.cursor(db=itemDB)
+        for item in inventory:
+            cursor.set_key(pack('I', item))
+            itemValue = cursor.value()
+            itemValue = literal_eval(itemValue.decode())
+            itemValue['ID'] = item
+            itemValueList.append(itemValue)
+        return itemValueList
+    return inventory
 
 
 # This gets all the data a client needs and makes an update
@@ -628,6 +633,8 @@ def movePlayer(clientHandler,
     cursor.close()
 
     # This makes the update for the player that typed the command
+
+    # The static fields
     area = getPlayerArea(clientHandler,
                          txn,
                          staticWorldDB,
@@ -639,7 +646,6 @@ def movePlayer(clientHandler,
             else:
                 update['staticFields'].update({'update': {}})
                 update['staticFields']['update'][field] = area[field]
-
     for field in oldOGArea:
         if field not in area:
             if 'remove' in update['staticFields']:
@@ -647,6 +653,8 @@ def movePlayer(clientHandler,
             else:
                 update['staticFields'].update({'remove': {}})
                 update['staticFields']['remove'][field] = oldOGArea[field]
+
+    # The item locations
     update['itemLocations'] = {}
     itemArea = getPlayerItemArea(clientHandler,
                                  txn,
@@ -668,6 +676,8 @@ def movePlayer(clientHandler,
             else:
                 update['itemLocations'].update({'remove': {}})
                 update['itemLocations']['remove'][field] = oldOGItemArea[field]
+
+    # The character locations
     update['characterLocations'] = {}
     characterLocationArea = getPlayerLocationArea(clientHandler,
                                                   txn,
@@ -763,21 +773,9 @@ def takeItem(clientHandler,
     inventory = getPlayerInventory(clientHandler,
                                    txn,
                                    itemDB,
-                                   inventoryDB)
-    inventory.append(pickedUpItem)
-    dictInInventory = False
-    for item in inventory:
-        if isinstance(item, dict):
-            dictInInventory = True
-    while dictInInventory:
-        for item in inventory:
-            if type(item) != int:
-                inventory.remove(item)
-                inventory.append(item['ID'])
-        dictInInventory = False
-        for item in inventory:
-            if isinstance(item, dict):
-                dictInInventory = True
+                                   inventoryDB,
+                                   getValues=False)
+    inventory.append(pickedUpItem['ID'])
     cursor = txn.cursor(db=inventoryDB)
     cursor.put(pack('I', accountID), bytes(repr(inventory).encode()))
     cursor.close()
@@ -835,20 +833,12 @@ def dropItem(clientHandler,
                                        txn,
                                        characterDB)
     cursor = txn.cursor(db=inventoryDB)
-    inventory.remove(droppedItem)
-    dictInInventory = False
-    for item in inventory:
-        if isinstance(item, dict):
-            dictInInventory = True
-    while dictInInventory:
-        for item in inventory:
-            if type(item) != int:
-                inventory.remove(item)
-                inventory.append(item['ID'])
-        dictInInventory = False
-        for item in inventory:
-            if isinstance(item, dict):
-                dictInInventory = True
+    inventory = getPlayerInventory(clientHandler,
+                                   txn,
+                                   itemDB,
+                                   inventoryDB,
+                                   getValues=False)
+    inventory.remove(droppedItem['ID'])
     cursor.put(pack('I', accountID), bytes(repr(inventory).encode()))
     cursor.close()
     itemField = getPlayerItemField(clientHandler,
