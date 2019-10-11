@@ -143,6 +143,8 @@ def performCommands(env,
                 clientTimestamp = command['command'][1]
                 serverTimestamp = command['ClientHandler'].lastSentUpdate
                 sendFullUpdate = False
+                if type(clientTimestamp) == str:
+                    continue
                 if abs(serverTimestamp-clientTimestamp) >= 5 and \
                    clientTimestamp != 0.0:
                     sendFullUpdate = True
