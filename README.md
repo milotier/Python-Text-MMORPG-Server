@@ -2,7 +2,7 @@
 
 How to setup your own server and client for testing:
 
-Just like with connecting to the development server, make sure that Python and pip3 are installed on your computer. You will need pip3 to install the required libraries.
+Just like with connecting to the development server, make sure that the latest versions of Python 3 and pip3 are installed on your computer. You will need pip3 to install the required libraries.
 
 Then you need to clone the server and client repositories to your computer.
 
