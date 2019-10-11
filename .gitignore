@@ -1,4 +1,4 @@
 *.pyc
 .DS_Store
-src/GameDatabase
+GameDatabase
 *.sb-76feaf39-0zZT8I

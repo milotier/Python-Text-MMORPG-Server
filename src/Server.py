@@ -100,6 +100,7 @@ class ClientHandler(LineReceiver):
                             self.otherClientConnected = True
                         self.isLoggedIn = True
                         self.loggedInAccount = detailsMatch
+                        print('Account', self.loggedInAccount, 'has logged in.')
                         self.users[detailsMatch] = self
                         if not self.otherClientConnected:
                             Database.login(self,
@@ -133,6 +134,7 @@ class ClientHandler(LineReceiver):
                     if type(outcome) == int:
                         self.isLoggedIn = True
                         self.loggedInAccount = outcome
+                        print('A new account:', self.loggedInAccount, 'has been made.')
                         self.users[outcome] = self
                         Database.login(self,
                                        env,
