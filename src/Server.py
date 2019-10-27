@@ -63,8 +63,11 @@ class ClientHandler(LineReceiver):
     def rawDataReceived(self, command):
         if self.waitingForVersion:
             try:
-                command = command.decode()
-            except UnicodeDecodeError:
+                f = Fernet(self.key)
+                command = f.decrypt(command).decode()
+            except InvalidToken or UnicodeDecodeError:
+                self.sendData('version invalid', 'message')
+                self.transport.loseConnection()
                 return
             with open('../config.json') as configData:
                 config = json.load(configData)
