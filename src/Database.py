@@ -520,7 +520,6 @@ def doCleanup(users,
               characterLocationDB):
     for user in users:
         logout(user, env, characterDB, characterLocationDB)
-        user.sendData('server went down', 'message')
 
 
 # This moves the player in the given direction
