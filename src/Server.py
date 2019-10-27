@@ -84,7 +84,8 @@ class ClientHandler(LineReceiver):
             command = f.decrypt(command).decode()
             command = literal_eval(command)
         except InvalidToken or ValueError:
-            return
+            self.sendData('suspicious behavior detected', 'message')
+            self.transport.loseConnection()
         if self.isLoggedIn:
             global commandQueue
             CommandHandler.commandQueue.put({'command': command,
