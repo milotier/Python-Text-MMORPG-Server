@@ -177,13 +177,13 @@ def performCommands(env,
                         if sendFullUpdate and type(outcome) == dict and not disconnected:
                             updates = {}
                             update = getCompleteUpdate(command['ClientHandler'],
-                                                        env,
-                                                        staticWorldDB,
-                                                        characterDB,
-                                                        characterLocationDB,
-                                                        itemDB,
-                                                        itemLocationDB,
-                                                        inventoryDB)
+                                                       env,
+                                                       staticWorldDB,
+                                                       characterDB,
+                                                       characterLocationDB,
+                                                       itemDB,
+                                                       itemLocationDB,
+                                                       inventoryDB)
                             with updateLock:
                                 for item in outcome:
                                     if type(item) == int:

@@ -12,6 +12,8 @@ from cryptography.fernet import InvalidToken
 from time import time
 import json
 from sys import exit
+from atexit import register, unregister
+
 
 # The server module (needless to say)
 
@@ -60,7 +62,10 @@ class ClientHandler(LineReceiver):
 
     def rawDataReceived(self, command):
         if self.waitingForVersion:
-            command = command.decode()
+            try:
+                command = command.decode()
+            except UnicodeDecodeError:
+                return
             with open('../config.json') as configData:
                 config = json.load(configData)
             if command == config['required version']:
@@ -162,8 +167,8 @@ class ClientHandler(LineReceiver):
                             env,
                             characterDB,
                             characterLocationDB,
-                            CommandHandler.updateDict,
-                            CommandHandler.updateLock)
+                            updateDict=CommandHandler.updateDict,
+                            updateLock=CommandHandler.updateLock)
             self.users.pop(self.loggedInAccount)
         self.transport.abortConnection()
 
@@ -257,17 +262,21 @@ commandPerformingThread4 = Thread(target=CommandHandler.performCommands,
 commandPerformingThread4.daemon = True
 commandPerformingThread4.start()
 
+register(Database.doCleanup, server.users)
+
 # This will run the server on the specified ip and port
 # and run the twisted eventloop
 try:
     reactor.listenTCP(port, server)
 except CannotListenError:
+    unregister(Database.doCleanup)
     print('\n\n')
     print('Could not run server on the specified IP adress.', end=' ')
     print('Please make sure to specify a valid IP adress in the config file')
     print('\n\n')
     exit()
 except OverflowError:
+    unregister(Database.doCleanup)
     print('\n\n')
     print('Port of server must be between 0 and 65535.', end=' ')
     print('Please make sure the port specified in the config file is between those numbers.')

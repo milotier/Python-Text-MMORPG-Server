@@ -195,8 +195,8 @@ def logout(clientHandler,
            env,
            characterDB,
            characterLocationDB,
-           updateDict,
-           updateLock):
+           updateDict=None,
+           updateLock=None):
     accountID = clientHandler.loggedInAccount
     txn = env.begin(write=True)
     characterLocation = getPlayerLocation(clientHandler, txn, characterDB)
@@ -226,6 +226,8 @@ def logout(clientHandler,
                                                   characterDB,
                                                   characterLocationDB)
     txn.commit()
+    if updateDict is None or updateLock is None:
+        return
     updates = {}
     for field in characterLocationArea:
         for character in characterLocationArea[field]:
@@ -512,6 +514,15 @@ def getCompleteUpdate(clientHandler,
     return update
 
 
+def doCleanup(users,
+              env,
+              characterDB,
+              characterLocationDB):
+    for user in users:
+        logout(user, env, characterDB, characterLocationDB)
+        user.sendData('server went down', 'message')
+
+
 # This moves the player in the given direction
 def movePlayer(clientHandler,
                direction,
@@ -740,6 +751,7 @@ def takeItem(clientHandler,
              itemDB,
              characterDB,
              characterLocationDB):
+    # Do some setup
     accountID = clientHandler.loggedInAccount
     txn = env.begin(write=True)
     itemField = getPlayerItemField(clientHandler,
@@ -747,6 +759,12 @@ def takeItem(clientHandler,
                                    itemLocationDB,
                                    itemDB,
                                    characterDB)
+    playerLocation = getPlayerLocation(clientHandler,
+                                       txn,
+                                       characterDB)
+
+    # Check whether the item to be picked up exists,
+    # and if it doesn't, return
     itemExists = False
     for fieldItem in itemField:
         if fieldItem['name'] == targetItem.itemName:
@@ -755,9 +773,9 @@ def takeItem(clientHandler,
             break
     if not itemExists:
         return 'item nonexisting'
-    playerLocation = getPlayerLocation(clientHandler,
-                                       txn,
-                                       characterDB)
+
+    # Remove the item from the item field
+    # and put it back in the database
     cursor = txn.cursor(db=itemLocationDB)
     itemField.remove(pickedUpItem)
     newItemField = []
@@ -770,6 +788,9 @@ def takeItem(clientHandler,
                     playerLocation[2]),
                bytes(repr(newItemField).encode()))
     cursor.close()
+
+    # Add the item to the player's inventory
+    # and put it back in the database
     inventory = getPlayerInventory(clientHandler,
                                    txn,
                                    itemDB,
@@ -779,6 +800,8 @@ def takeItem(clientHandler,
     cursor = txn.cursor(db=inventoryDB)
     cursor.put(pack('I', accountID), bytes(repr(inventory).encode()))
     cursor.close()
+
+    # Make the update for the player that performed the command
     playerLocation = \
         repr(playerLocation[0]) + ' ' + \
         repr(playerLocation[1]) + ' ' + \
@@ -789,6 +812,9 @@ def takeItem(clientHandler,
     update['itemLocations']['update'][playerLocation] = itemField
     update['inventory'] = {}
     update['inventory']['update'] = [pickedUpItem]
+
+    # Make the updates for the other players nearby
+    # and return it
     updates = {}
     updates[accountID] = update
     characterLocationArea = getPlayerLocationArea(clientHandler,
@@ -815,6 +841,7 @@ def dropItem(clientHandler,
              itemDB,
              characterDB,
              characterLocationDB):
+    # Do some setup
     accountID = clientHandler.loggedInAccount
     txn = env.begin(write=True)
     inventory = getPlayerInventory(clientHandler,
