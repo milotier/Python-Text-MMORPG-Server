@@ -265,7 +265,7 @@ commandPerformingThread4 = Thread(target=CommandHandler.performCommands,
 commandPerformingThread4.daemon = True
 commandPerformingThread4.start()
 
-register(Database.doCleanup, server.users)
+register(Database.doCleanup, server.users, env, characterDB, characterLocationDB)
 
 # This will run the server on the specified ip and port
 # and run the twisted eventloop
