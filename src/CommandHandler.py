@@ -7,6 +7,7 @@ from queue import Queue
 from threading import Lock
 from json import loads
 from json.decoder import JSONDecodeError
+from ast import literal_eval
 
 
 # Here a FIFO queue is made
@@ -162,7 +163,7 @@ def performCommands(env,
                     print('Account', command['ClientHandler'].loggedInAccount, 'performed a', type(command['command']).__name__ + '.')
                     if command['command'] is not None:
                         if issubclass(type(command['command']), Command):
-                            outcome = command['command'].function(*eval(command['command'].args))
+                            outcome = command['command'].function(*literal_eval(command['command'].args))
                             if type(outcome) == dict and not sendFullUpdate:
                                 with updateLock:
                                     for item in outcome:
