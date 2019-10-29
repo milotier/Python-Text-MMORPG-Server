@@ -93,8 +93,7 @@ class ClientHandler(LineReceiver):
                                              'ClientHandler': self})
         else:
             if type(command) != list or \
-               type(command[0]) != str or \
-               type(command[1]) != str or \
+               not all(isinstance(item, str) for item in command) or \
                len(command) > 3 or \
                len(command) < 2:
                 self.sendData('suspicious behavior detected', 'message')
