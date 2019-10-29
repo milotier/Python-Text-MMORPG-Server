@@ -88,6 +88,13 @@ class ClientHandler(LineReceiver):
             self.transport.loseConnection()
             return
         if self.isLoggedIn:
+            if type(command) != list or \
+               type(command[1]) != float or \
+               len(command) != 2:
+                self.sendData('suspicious behavior detected', 'message')
+                self.transport.loseConnection()
+                return
+            print(command)
             global commandQueue
             CommandHandler.commandQueue.put({'command': command,
                                              'ClientHandler': self})
