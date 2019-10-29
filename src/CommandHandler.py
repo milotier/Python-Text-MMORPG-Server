@@ -64,7 +64,7 @@ class TravelCommand(Command):
                                    inputDirection,
                                    directionCommentFactor)
         self.function = movePlayer
-        self.args = "command['ClientHandler'],command['command'].direction.direction,env,staticWorldDB,characterDB,characterLocationDB,itemDB,itemLocationDB"
+        self.args = "(command['ClientHandler'],command['command'].direction.direction,env,staticWorldDB,characterDB,characterLocationDB,itemDB,itemLocationDB)"
 
 
 class TakeCommand(Command):
@@ -77,7 +77,7 @@ class TakeCommand(Command):
                          [])
         self.targetItem = Item(itemName)
         self.function = takeItem
-        self.args = "command['ClientHandler'],command['command'].targetItem,env,inventoryDB,itemLocationDB,itemDB,characterDB,characterLocationDB"
+        self.args = "(command['ClientHandler'],command['command'].targetItem,env,inventoryDB,itemLocationDB,itemDB,characterDB,characterLocationDB)"
 
 
 class DropCommand(Command):
@@ -90,7 +90,7 @@ class DropCommand(Command):
                          [])
         self.targetItem = Item(itemName)
         self.function = dropItem
-        self.args = "command['ClientHandler'],command['command'].targetItem,env,inventoryDB,itemLocationDB,itemDB,characterDB,characterLocationDB"
+        self.args = "(command['ClientHandler'],command['command'].targetItem,env,inventoryDB,itemLocationDB,itemDB,characterDB,characterLocationDB)"
 
 
 # This will make a command object
@@ -163,7 +163,7 @@ def performCommands(env,
                     print('Account', command['ClientHandler'].loggedInAccount, 'performed a', type(command['command']).__name__ + '.')
                     if command['command'] is not None:
                         if issubclass(type(command['command']), Command):
-                            outcome = command['command'].function(*literal_eval(command['command'].args))
+                            outcome = command['command'].function(*eval(command['command'].args))
                             if type(outcome) == dict and not sendFullUpdate:
                                 with updateLock:
                                     for item in outcome:
