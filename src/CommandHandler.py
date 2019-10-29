@@ -64,7 +64,7 @@ class TravelCommand(Command):
                                    inputDirection,
                                    directionCommentFactor)
         self.function = movePlayer
-        self.args = "(command['ClientHandler'],command['command'].direction.direction,env,staticWorldDB,characterDB,characterLocationDB,itemDB,itemLocationDB)"
+        self.args = "command['ClientHandler'],command['command'].direction.direction,env,staticWorldDB,characterDB,characterLocationDB,itemDB,itemLocationDB"
 
 
 class TakeCommand(Command):
@@ -77,7 +77,7 @@ class TakeCommand(Command):
                          [])
         self.targetItem = Item(itemName)
         self.function = takeItem
-        self.args = "(command['ClientHandler'],command['command'].targetItem,env,inventoryDB,itemLocationDB,itemDB,characterDB,characterLocationDB)"
+        self.args = "command['ClientHandler'],command['command'].targetItem,env,inventoryDB,itemLocationDB,itemDB,characterDB,characterLocationDB"
 
 
 class DropCommand(Command):
@@ -90,7 +90,7 @@ class DropCommand(Command):
                          [])
         self.targetItem = Item(itemName)
         self.function = dropItem
-        self.args = "(command['ClientHandler'],command['command'].targetItem,env,inventoryDB,itemLocationDB,itemDB,characterDB,characterLocationDB)"
+        self.args = "command['ClientHandler'],command['command'].targetItem,env,inventoryDB,itemLocationDB,itemDB,characterDB,characterLocationDB"
 
 
 # This will make a command object
