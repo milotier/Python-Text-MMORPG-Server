@@ -89,80 +89,83 @@ class ClientHandler(LineReceiver):
         if self.isLoggedIn:
             global commandQueue
             CommandHandler.commandQueue.put({'command': command,
-                                            'ClientHandler': self})
+                                             'ClientHandler': self})
         else:
-            if type(command) == list:
-                if type(command[0]) != str or \
-                   type(command[1]) != str:
-                    return
-                if 'create' not in command:
-                    detailsMatch = Database.checkAccountDetails(self,
-                                                                command[0],
-                                                                command[1],
-                                                                env,
-                                                                loginDB)
-                    if type(detailsMatch) == int:
-                        self.otherClientConnected = False
-                        if detailsMatch in self.users:
-                            self.users[detailsMatch].loggedInAccount = None
-                            self.users[detailsMatch].transport.loseConnection()
-                            self.otherClientConnected = True
-                        self.isLoggedIn = True
-                        self.loggedInAccount = detailsMatch
-                        print('Account', self.loggedInAccount, 'has logged in.')
-                        self.users[detailsMatch] = self
-                        if not self.otherClientConnected:
-                            Database.login(self,
-                                           env,
-                                           characterDB,
-                                           characterLocationDB,
-                                           CommandHandler.updateDict,
-                                           CommandHandler.updateLock)
-                        update = Database.getCompleteUpdate(self,
+            if type(command) != list or \
+               type(command[0]) != str or \
+               type(command[1]) != str or \
+               len(command) > 3 or \
+               len(command) < 2:
+                self.sendData('suspicious behavior detected', 'message')
+                self.transport.loseConnection()
+            if 'create' not in command:
+                detailsMatch = Database.checkAccountDetails(self,
+                                                            command[0],
+                                                            command[1],
                                                             env,
-                                                            staticWorldDB,
-                                                            characterDB,
-                                                            characterLocationDB,
-                                                            itemDB,
-                                                            itemLocationDB,
-                                                            inventoryDB)
-                        update['type'] = 'full update'
-                        self.sendData(update, 'update')
-                    else:
-                        self.sendData('no match found', 'message')
-
-                else:
-                    outcome = Database.createAccount(command[0],
-                                                     command[1],
-                                                     env,
-                                                     loginDB,
-                                                     characterDB,
-                                                     characterLocationDB,
-                                                     accountDB,
-                                                     inventoryDB)
-                    if type(outcome) == int:
-                        self.isLoggedIn = True
-                        self.loggedInAccount = outcome
-                        print('A new account:', self.loggedInAccount, 'has been made.')
-                        self.users[outcome] = self
+                                                            loginDB)
+                if type(detailsMatch) == int:
+                    self.otherClientConnected = False
+                    if detailsMatch in self.users:
+                        self.users[detailsMatch].loggedInAccount = None
+                        self.users[detailsMatch].transport.loseConnection()
+                        self.otherClientConnected = True
+                    self.isLoggedIn = True
+                    self.loggedInAccount = detailsMatch
+                    print('Account', self.loggedInAccount, 'has logged in.')
+                    self.users[detailsMatch] = self
+                    if not self.otherClientConnected:
                         Database.login(self,
                                        env,
                                        characterDB,
                                        characterLocationDB,
                                        CommandHandler.updateDict,
                                        CommandHandler.updateLock)
-                        update = Database.getCompleteUpdate(self,
-                                                            env,
-                                                            staticWorldDB,
-                                                            characterDB,
-                                                            characterLocationDB,
-                                                            itemDB,
-                                                            itemLocationDB,
-                                                            inventoryDB)
-                        update['type'] = 'full update'
-                        self.sendData(update, 'update')
-                    elif type(outcome) == str:
-                        self.sendData(outcome, 'message')
+                    update = Database.getCompleteUpdate(self,
+                                                        env,
+                                                        staticWorldDB,
+                                                        characterDB,
+                                                        characterLocationDB,
+                                                        itemDB,
+                                                        itemLocationDB,
+                                                        inventoryDB)
+                    update['type'] = 'full update'
+                    self.sendData(update, 'update')
+                else:
+                    self.sendData('no match found', 'message')
+
+            else:
+                outcome = Database.createAccount(command[0],
+                                                 command[1],
+                                                 env,
+                                                 loginDB,
+                                                 characterDB,
+                                                 characterLocationDB,
+                                                 accountDB,
+                                                 inventoryDB)
+                if type(outcome) == int:
+                    self.isLoggedIn = True
+                    self.loggedInAccount = outcome
+                    print('A new account:', self.loggedInAccount, 'has been made.')
+                    self.users[outcome] = self
+                    Database.login(self,
+                                   env,
+                                   characterDB,
+                                   characterLocationDB,
+                                   CommandHandler.updateDict,
+                                   CommandHandler.updateLock)
+                    update = Database.getCompleteUpdate(self,
+                                                        env,
+                                                        staticWorldDB,
+                                                        characterDB,
+                                                        characterLocationDB,
+                                                        itemDB,
+                                                        itemLocationDB,
+                                                        inventoryDB)
+                    update['type'] = 'full update'
+                    self.sendData(update, 'update')
+                elif type(outcome) == str:
+                    self.sendData(outcome, 'message')
 
     def connectionLost(self, reason):
         if self.loggedInAccount is not None:
