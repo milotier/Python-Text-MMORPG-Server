@@ -89,8 +89,9 @@ class ClientHandler(LineReceiver):
             return
         if self.isLoggedIn:
             if type(command) != list or \
-               type(command[1]) != float or \
-               len(command) != 2:
+               len(command) != 2 or \
+               type(command[0]) != bytes or \
+               type(command[1]) != float:
                 self.sendData('suspicious behavior detected', 'message')
                 self.transport.loseConnection()
                 return
