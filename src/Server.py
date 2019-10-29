@@ -86,6 +86,7 @@ class ClientHandler(LineReceiver):
         except InvalidToken or ValueError:
             self.sendData('suspicious behavior detected', 'message')
             self.transport.loseConnection()
+            return
         if self.isLoggedIn:
             global commandQueue
             CommandHandler.commandQueue.put({'command': command,
@@ -98,6 +99,7 @@ class ClientHandler(LineReceiver):
                len(command) < 2:
                 self.sendData('suspicious behavior detected', 'message')
                 self.transport.loseConnection()
+                return
             if 'create' not in command:
                 detailsMatch = Database.checkAccountDetails(self,
                                                             command[0],
