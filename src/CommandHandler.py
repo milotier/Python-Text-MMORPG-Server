@@ -158,53 +158,57 @@ def performCommands(env,
                 except JSONDecodeError:
                     command['ClientHandler'].sendData('suspicious behavior detected', 'message')
                     reactor.callFromThread(command['ClientHandler'].transport.loseConnection)
-                    return
+                    continue
                 else:
                     disconnected = False
                     command['command'] = makeCommand(command['command'])
-                    print('Account', command['ClientHandler'].loggedInAccount, 'performed a', type(command['command']).__name__ + '.')
-                    if command['command'] is not None:
-                        if issubclass(type(command['command']), Command):
-                            outcome = command['command'].function(*eval(command['command'].args))
-                            if type(outcome) == dict and not sendFullUpdate:
-                                with updateLock:
-                                    for item in outcome:
-                                        if type(item) == int:
-                                            outcome[item]['type'] = 'update'
-                                            if item not in updateDict:
-                                                updateDict[item] = []
-                                                updateDict[item].append(outcome[item])
-                                            else:
-                                                updateDict[item].append(outcome[item])
-
-                        if sendFullUpdate and type(outcome) == dict and not disconnected:
-                            updates = {}
-                            update = getCompleteUpdate(command['ClientHandler'],
-                                                       env,
-                                                       staticWorldDB,
-                                                       characterDB,
-                                                       characterLocationDB,
-                                                       itemDB,
-                                                       itemLocationDB,
-                                                       inventoryDB)
+                    print('test')
+                    if command['command'] is None:
+                        command['ClientHandler'].sendData('suspicious behavior detected', 'message')
+                        reactor.callFromThread(command['ClientHandler'].transport.loseConnection)
+                        continue
+                    if issubclass(type(command['command']), Command):
+                        outcome = command['command'].function(*eval(command['command'].args))
+                        print('Account', command['ClientHandler'].loggedInAccount, 'performed a', type(command['command']).__name__ + '.')
+                        if type(outcome) == dict and not sendFullUpdate:
                             with updateLock:
                                 for item in outcome:
                                     if type(item) == int:
-                                        if item == command['ClientHandler'].loggedInAccount:
-                                            outcome[item] = update
-                                            outcome[item]['type'] = 'full update'
-                                            if item not in updateDict:
-                                                updateDict[item] = []
-                                                updateDict[item].append(outcome[item])
-                                            else:
-                                                updateDict[item].append(outcome[item])
+                                        outcome[item]['type'] = 'update'
+                                        if item not in updateDict:
+                                            updateDict[item] = []
+                                            updateDict[item].append(outcome[item])
                                         else:
-                                            outcome[item]['type'] = 'update'
-                                            if item not in updateDict:
-                                                updateDict[item] = []
-                                                updateDict[item].append(outcome[item])
-                                            else:
-                                                updateDict[item].append(outcome[item])
+                                            updateDict[item].append(outcome[item])
+
+                    if sendFullUpdate and type(outcome) == dict and not disconnected:
+                        updates = {}
+                        update = getCompleteUpdate(command['ClientHandler'],
+                                                   env,
+                                                   staticWorldDB,
+                                                   characterDB,
+                                                   characterLocationDB,
+                                                   itemDB,
+                                                   itemLocationDB,
+                                                   inventoryDB)
+                        with updateLock:
+                            for item in outcome:
+                                if type(item) == int:
+                                    if item == command['ClientHandler'].loggedInAccount:
+                                        outcome[item] = update
+                                        outcome[item]['type'] = 'full update'
+                                        if item not in updateDict:
+                                            updateDict[item] = []
+                                            updateDict[item].append(outcome[item])
+                                        else:
+                                            updateDict[item].append(outcome[item])
+                                    else:
+                                        outcome[item]['type'] = 'update'
+                                        if item not in updateDict:
+                                            updateDict[item] = []
+                                            updateDict[item].append(outcome[item])
+                                        else:
+                                            updateDict[item].append(outcome[item])
 
             mode = 2
 
