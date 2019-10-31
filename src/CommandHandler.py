@@ -156,7 +156,9 @@ def performCommands(env,
                 try:
                     command['command'] = loads(command['command'][0])
                 except JSONDecodeError:
-                    pass
+                    command['ClientHandler'].sendData('suspicious behavior detected', 'message')
+                    reactor.callFromThread(command['ClientHandler'].transport.loseConnection)
+                    return
                 else:
                     disconnected = False
                     command['command'] = makeCommand(command['command'])
